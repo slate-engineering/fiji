@@ -2,7 +2,6 @@ import * as Environment from "~/node_common/environment";
 import * as ScriptLogging from "~/node_common/script-logging";
 
 import APIRouteIndex from "~/pages";
-import APIRouteUpload from "~/pages/upload";
 
 import express from "express";
 import cors from "cors";
