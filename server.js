@@ -42,8 +42,7 @@ socket.on("connection", (connection, req) => {
       data = request.data;
       type = request.type;
     } catch (e) {
-      // NOTE(jim): Not sure what kind of errors we really get here.
-      console.log(e);
+      ScriptLogging.socketError("ERROR           ", e.message);
     }
 
     if (type === "SUBSCRIBE_VIEWER") {
@@ -62,7 +61,7 @@ socket.on("connection", (connection, req) => {
   });
 
   connection.on("close", function close() {
-    ScriptLogging.socketMessage("CLOSE           ", connection.userId);
+    ScriptLogging.socketError("CLOSE           ", connection.userId);
     clearInterval(interval);
   });
 
@@ -71,14 +70,15 @@ socket.on("connection", (connection, req) => {
 
 const interval = setInterval(() => {
   socket.clients.forEach((c) => {
-    ScriptLogging.socketMessage("PING            ", c.userId);
     if (c.isAlive === false) {
       // NOTE(jim): No longer connected.
+      ScriptLogging.socketError("DEAD            ", c.userId);
       c.send(`dead::${c.userId}`);
       return c.terminate();
     }
 
     // NOTE(jim): Still alive
+    ScriptLogging.socketMessage("OKAY            ", c.userId);
     c.send(`still-alive::${c.userId}`);
     c.isAlive = false;
     c.ping(() => {});
