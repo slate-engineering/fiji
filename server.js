@@ -28,7 +28,8 @@ socket.on("connection", (connection, req) => {
 
   connection.on("pong", () => {
     // NOTE(jim): Send keep alive updates.
-    connection.send(`-- keep-alive -- CLIENT|${connection.userId}`);
+    ScriptLogging.socketMessage("KEEP ALIVE      ", connection.userId);
+    connection.send(`keep-alive::${connection.userId}`);
     connection.isAlive = true;
   });
 
@@ -42,14 +43,14 @@ socket.on("connection", (connection, req) => {
       type = request.type;
     } catch (e) {
       // NOTE(jim): Not sure what kind of errors we really get here.
-      console.log("-- error", e);
+      console.log(e);
     }
 
     if (type === "SUBSCRIBE_VIEWER") {
       connection.userId = data.id;
       // NOTE(jim): Subscription.
-      console.log(`-- connected -- CLIENT|${connection.userId}`);
-      connection.send(`-- connected -- CLIENT|${connection.userId}`);
+      ScriptLogging.socketMessage("SUBSCRIBE_VIEWER", connection.userId);
+      connection.send(`connected::${connection.userId}`);
       return;
     }
 
@@ -61,24 +62,24 @@ socket.on("connection", (connection, req) => {
   });
 
   connection.on("close", function close() {
-    console.log(`-- close -- CLIENT|${connection.userId}`);
+    ScriptLogging.socketMessage("CLOSE           ", connection.userId);
     clearInterval(interval);
   });
 
-  connection.send(`-- established connection ...`);
+  connection.send(`connecting::`);
 });
 
 const interval = setInterval(() => {
   socket.clients.forEach((c) => {
-    console.log(`-- checking -- CLIENT|${c.userId}`);
+    ScriptLogging.socketMessage("PING            ", c.userId);
     if (c.isAlive === false) {
       // NOTE(jim): No longer connected.
-      c.send(`-- dead -- CLIENT|${c.userId}`);
+      c.send(`dead::${c.userId}`);
       return c.terminate();
     }
 
     // NOTE(jim): Still alive
-    c.send(`-- kept-alive -- CLIENT|${c.userId}`);
+    c.send(`still-alive::${c.userId}`);
     c.isAlive = false;
     c.ping(() => {});
   });
@@ -87,5 +88,5 @@ const interval = setInterval(() => {
 server.listen(Environment.PORT, (e) => {
   if (e) throw e;
 
-  ScriptLogging.taskTimeless(`http://localhost:${Environment.PORT}`);
+  ScriptLogging.socketMessage("SERVER START    ", `http://localhost:${Environment.PORT}`);
 });
