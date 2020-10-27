@@ -8,10 +8,16 @@ import APIRouteIndex from "~/pages";
 import crypto from "crypto";
 import express from "express";
 import cors from "cors";
-import morgan from "morgan";
 import compression from "compression";
 
 const ENCRYPTION_ALGORITHM = "aes-256-ctr";
+const SERVER_START = "SERVER START    ";
+const KEEP_ALIVE = "KEEP ALIVE      ";
+const ERROR = "ERROR           ";
+const CONNECT = "CONNECT         ";
+const CLOSE = "CLOSE           ";
+const UPDATING_USER = "UPDATING USER   ";
+const DEAD = "DEAD            ";
 
 const decrypt = (hash, iv) => {
   const decipher = crypto.createDecipheriv(
@@ -28,7 +34,6 @@ const decrypt = (hash, iv) => {
 const app = express();
 
 app.use(cors());
-app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
 app.get("/favicon.ico", (req, res) => res.status(204));
 app.get("/", APIRouteIndex);
 
@@ -42,8 +47,7 @@ socket.on("connection", (connection, req) => {
   connection.userId = null;
 
   connection.on("pong", () => {
-    // NOTE(jim): Send keep alive updates.
-    ScriptLogging.socketMessage("KEEP ALIVE      ", connection.userId);
+    ScriptLogging.message(KEEP_ALIVE, connection.userId);
     connection.send(JSON.stringify({ data: `keep-alive::${connection.userId}` }));
     connection.isAlive = true;
   });
@@ -59,19 +63,19 @@ socket.on("connection", (connection, req) => {
       type = request.type;
       iv = request.iv;
     } catch (e) {
-      ScriptLogging.socketError("ERROR           ", e.message);
+      ScriptLogging.error(ERROR, e.message);
     }
 
     if (type === "SUBSCRIBE_HOST") {
       connection.userId = "SLATE";
-      ScriptLogging.socketMessage("CONNECT         ", connection.userId);
+      ScriptLogging.message(CONNECT, connection.userId);
       connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
       return;
     }
 
     if (type === "SUBSCRIBE_VIEWER") {
       connection.userId = data.id;
-      ScriptLogging.socketMessage("CONNECT         ", connection.userId);
+      ScriptLogging.message(CONNECT, connection.userId);
       connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
       return;
     }
@@ -82,14 +86,14 @@ socket.on("connection", (connection, req) => {
         const user = JSON.parse(decryptedData);
         broadcastByUserId(JSON.stringify({ type: "UPDATE", data: user }), user.id);
       } catch (e) {
-        console.log(e);
+        ScriptLogging.error(ERROR, e.message);
       }
       return;
     }
   });
 
   connection.on("close", function close() {
-    ScriptLogging.socketError("CLOSE           ", connection.userId);
+    ScriptLogging.error(CLOSE, connection.userId);
     clearInterval(keepAliveInterval);
   });
 
@@ -99,7 +103,7 @@ socket.on("connection", (connection, req) => {
 const broadcastByUserId = (message, userId) => {
   socket.clients.forEach((c) => {
     if (c.userId === userId) {
-      ScriptLogging.socketMessage("UPDATING USER   ", userId);
+      ScriptLogging.message(UPDATING_USER, userId);
       return c.send(message);
     }
   });
@@ -108,14 +112,12 @@ const broadcastByUserId = (message, userId) => {
 const keepAliveInterval = setInterval(() => {
   socket.clients.forEach((c) => {
     if (c.isAlive === false) {
-      // NOTE(jim): No longer connected.
-      ScriptLogging.socketError("DEAD            ", c.userId);
+      ScriptLogging.error(DEAD, c.userId);
       c.send(JSON.stringify({ data: `dead::${c.userId}` }));
       return c.terminate();
     }
 
-    // NOTE(jim): Still alive
-    ScriptLogging.socketMessage("OKAY            ", c.userId);
+    ScriptLogging.message(KEEP_ALIVE, c.userId);
     c.send(JSON.stringify({ data: `still-alive::${c.userId}` }));
     c.isAlive = false;
     c.ping(() => {});
@@ -125,5 +127,5 @@ const keepAliveInterval = setInterval(() => {
 server.listen(Environment.PORT, (e) => {
   if (e) throw e;
 
-  ScriptLogging.socketMessage("SERVER START    ", `http://localhost:${Environment.PORT}`);
+  ScriptLogging.log(SERVER_START, `http://localhost:${Environment.PORT}`);
 });

@@ -1,8 +1,4 @@
-const { performance } = require("perf_hooks");
-
-const TIME_START = performance.now();
-
-const getTimestamp = (current, previous) => {
+const getTimestamp = () => {
   return new Date()
     .toISOString()
     .replace(/T/, " ")
@@ -10,17 +6,17 @@ const getTimestamp = (current, previous) => {
 };
 
 const getTime = () => {
-  return `[ \x1b[35m\x1b[5m${getTimestamp(performance.now(), TIME_START)}\x1b[0m ]`;
+  return `[ \x1b[35m\x1b[5m${getTimestamp()}\x1b[0m ]`;
 };
 
-export const socketError = (name, message) => {
+export const error = (name, message) => {
   console.log(`\x1b[1m[ \x1b[31m${name}\x1b[0m\x1b[1m ]\x1b[0m ${getTime()} ${message}`);
 };
 
-export const socketMessage = (name, message) => {
+export const message = (name, message) => {
   console.log(`\x1b[1m[ \x1b[32m${name}\x1b[0m\x1b[1m ]\x1b[0m ${getTime()} ${message}`);
 };
 
-export const log = (message, name = "SCRIPT") => {
+export const log = (name = "SCRIPT", message) => {
   console.log(`\x1b[1m[ \x1b[32m${name}\x1b[0m\x1b[1m ]\x1b[0m ${message}`);
 };
