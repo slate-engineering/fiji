@@ -16,7 +16,7 @@ const ENCRYPTION_ALGORITHM = "aes-256-ctr";
 const decrypt = (hash, iv) => {
   const decipher = crypto.createDecipheriv(
     ENCRYPTION_ALGORITHM,
-    Environment.FIJI_SECRET,
+    Environment.PUBSUB_SECRET,
     Buffer.from(iv, "hex")
   );
 
