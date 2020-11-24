@@ -66,6 +66,13 @@ socket.on("connection", (connection, req) => {
       ScriptLogging.error(ERROR, e.message);
     }
 
+    if (type === "LENS_SUBSCRIBE_HOST") {
+      connection.userId = "LENS";
+      ScriptLogging.message(CONNECT, connection.userId);
+      connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
+      return;
+    }
+
     if (type === "SUBSCRIBE_HOST") {
       connection.userId = "SLATE";
       ScriptLogging.message(CONNECT, connection.userId);
