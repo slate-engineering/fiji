@@ -1,6 +1,6 @@
 # Fiji
 
-A lightweight server for pubsub
+Websocket micro-service
 
 ### Environment Variables
 
