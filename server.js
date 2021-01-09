@@ -47,12 +47,14 @@ socket.on("connection", (connection, req) => {
   connection.userId = null;
 
   connection.on("pong", () => {
+    console.log("pong");
     ScriptLogging.message(KEEP_ALIVE, connection.userId);
     connection.send(JSON.stringify({ data: `keep-alive::${connection.userId}` }));
     connection.isAlive = true;
   });
 
   connection.on("message", (message) => {
+    console.log("received message");
     let data;
     let type;
     let iv;
