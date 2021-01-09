@@ -54,7 +54,6 @@ socket.on("connection", (connection, req) => {
   });
 
   connection.on("message", (message) => {
-    console.log("received message");
     let data;
     let type;
     let iv;
@@ -67,6 +66,8 @@ socket.on("connection", (connection, req) => {
     } catch (e) {
       ScriptLogging.error(ERROR, e.message);
     }
+
+    console.log(`received message of type ${type}`);
 
     if (type === "UPDATE") {
       try {
