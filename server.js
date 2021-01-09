@@ -66,6 +66,19 @@ socket.on("connection", (connection, req) => {
       ScriptLogging.error(ERROR, e.message);
     }
 
+    console.log(`RECEIVED MESSAGE of type ${type}`);
+
+    if (type === "UPDATE") {
+      try {
+        const decryptedData = decrypt(data, iv);
+        const user = JSON.parse(decryptedData);
+        broadcastByUserId(JSON.stringify({ type: "UPDATE", data: user }), user.id);
+      } catch (e) {
+        ScriptLogging.error(ERROR, e.message);
+      }
+      return;
+    }
+
     if (type === "LENS_SUBSCRIBE_HOST") {
       connection.userId = "LENS";
       ScriptLogging.message(CONNECT, connection.userId);
@@ -84,17 +97,6 @@ socket.on("connection", (connection, req) => {
       connection.userId = data.id;
       ScriptLogging.message(CONNECT, connection.userId);
       connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
-      return;
-    }
-
-    if (type === "UPDATE") {
-      try {
-        const decryptedData = decrypt(data, iv);
-        const user = JSON.parse(decryptedData);
-        broadcastByUserId(JSON.stringify({ type: "UPDATE", data: user }), user.id);
-      } catch (e) {
-        ScriptLogging.error(ERROR, e.message);
-      }
       return;
     }
   });
