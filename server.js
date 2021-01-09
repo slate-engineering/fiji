@@ -66,8 +66,6 @@ socket.on("connection", (connection, req) => {
       ScriptLogging.error(ERROR, e.message);
     }
 
-    console.log(`RECEIVED MESSAGE of type ${type}`);
-
     if (type === "UPDATE") {
       try {
         const decryptedData = decrypt(data, iv);
