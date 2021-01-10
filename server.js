@@ -47,7 +47,6 @@ socket.on("connection", (connection, req) => {
   connection.userId = null;
 
   connection.on("pong", () => {
-    console.log("pong");
     ScriptLogging.message(KEEP_ALIVE, connection.userId);
     connection.send(JSON.stringify({ data: `keep-alive::${connection.userId}` }));
     connection.isAlive = true;
@@ -66,8 +65,6 @@ socket.on("connection", (connection, req) => {
     } catch (e) {
       ScriptLogging.error(ERROR, e.message);
     }
-
-    console.log(`received message of type ${type}`);
 
     if (type === "UPDATE") {
       try {
