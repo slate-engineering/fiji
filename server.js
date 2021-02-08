@@ -42,6 +42,9 @@ const socket = new WebSocket.Server({ server });
 
 const SOCKET_KEEP_ALIVE = 30000;
 
+// NOTE(daniel): I am maintaining all active users in this object
+const users = new Set();
+
 socket.on("connection", (connection, req) => {
   connection.isAlive = true;
   connection.userId = null;
@@ -92,15 +95,22 @@ socket.on("connection", (connection, req) => {
     }
 
     if (type === "SUBSCRIBE_VIEWER") {
-      connection.userId = data.id;
       ScriptLogging.message(CONNECT, connection.userId);
-      connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
+
+      connection.userId = data.id;
+      users.add(connection.userId);
+      connection.send(JSON.stringify({ type: "UPDATE_USERS_ONLINE", data: Array.from(users) }));
+
       return;
     }
   });
 
   connection.on("close", function close() {
     ScriptLogging.error(CLOSE, connection.userId);
+
+    users.delete(connection.userId);
+    connection.send(JSON.stringify({ type: "UPDATE_USERS_ONLINE", data: Array.from(users) }));
+
     clearInterval(keepAliveInterval);
   });
 
