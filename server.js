@@ -38,7 +38,7 @@ app.get("/favicon.ico", (req, res) => res.status(204));
 app.get("/", APIRouteIndex);
 
 const server = http.createServer(app);
-const socket = new WebSocket.Server({ server });
+const socket = new WebSocket.Server({ server, clientTracking: true });
 
 const SOCKET_KEEP_ALIVE = 30000;
 
@@ -103,13 +103,26 @@ socket.on("connection", (connection, req) => {
 
       return;
     }
+
+    if (type === "UNSUBSCRIBE_VIEWER") {
+      socket.clients.forEach((c) => {
+        if (c.userId === data.id) {
+          c.close(4000, "SIGN_OUT");
+        }
+      });
+    }
   });
 
   connection.on("close", function close() {
     ScriptLogging.error(CLOSE, connection.userId);
 
     users.delete(connection.userId);
-    connection.send(JSON.stringify({ type: "UPDATE_USERS_ONLINE", data: Array.from(users) }));
+    connection.send(
+      JSON.stringify({
+        type: "UPDATE_USERS_ONLINE",
+        data: Array.from(users),
+      })
+    );
 
     clearInterval(keepAliveInterval);
   });
