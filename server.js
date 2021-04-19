@@ -80,6 +80,13 @@ socket.on("connection", (connection, req) => {
       return;
     }
 
+    if (type === "SHOVEL_SUBSCRIBE_HOST") {
+      connection.userId = "SHOVEL";
+      ScriptLogging.message(CONNECT, connection.userId);
+      connection.send(JSON.stringify({ data: `connected::${connection.userId}` }));
+      return;
+    }
+
     if (type === "LENS_SUBSCRIBE_HOST") {
       connection.userId = "LENS";
       ScriptLogging.message(CONNECT, connection.userId);
