@@ -102,9 +102,8 @@ socket.on("connection", (connection, req) => {
     }
 
     if (type === "SUBSCRIBE_VIEWER") {
-      ScriptLogging.message(CONNECT, connection.userId);
-
       connection.userId = data.id;
+      ScriptLogging.message(CONNECT, connection.userId);
       users.add(connection.userId);
       connection.send(JSON.stringify({ type: "UPDATE_USERS_ONLINE", data: Array.from(users) }));
 
