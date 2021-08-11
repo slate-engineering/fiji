@@ -16,6 +16,7 @@ TEXTILE_HUB_SECRET=XXX
 JWT_SECRET=XXX
 PUBSUB_SECRET=pKLO4lbzdMrhAFKwPo9bnmq03bxQrtu3
 SOURCE=fiji
+NODE_ENV=development
 ```
 
 ### Run the server
