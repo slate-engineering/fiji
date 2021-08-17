@@ -1,5 +1,3 @@
-import DB from "~/node_common/database";
-
 export const user = (entity) => {
   return {
     type: "USER",
